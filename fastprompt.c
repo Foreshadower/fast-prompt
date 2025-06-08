@@ -10,31 +10,31 @@ const char* fast_basename() {
     return start;
 }
 
-int main(int argc, char** argv) {
-    //SetConsoleOutputCP(CP_UTF8);
-    //SetConsoleCP(CP_UTF8);
+int main(int argc, char** argv) { // TODO likely much better method
+    // SetConsoleOutputCP(CP_UTF8);
+    // SetConsoleCP(CP_UTF8);
+    char BufTotal[30]; // TODO Boldly assumes basename is <18 chars
+    int index = 5;
+
+    memcpy(BufTotal, "\x1b[32m", 5);
 
     const char* dir = fast_basename();
-    write(STDOUT_FILENO, "\x1b[32m", 5); // green directory
-    write(STDOUT_FILENO, dir, strlen(dir));
+
+    memcpy(BufTotal+5, dir, strlen(dir));
+    index += strlen(dir);
+
     const char* status_str = argv[1];
     if (status_str && status_str[0] != '0') {
-        char buf[4] = {' ', ' ', ' ', ' '};
+        char buf[10] = {'\x1b', '[', '3', '1', 'm', ' ', ' ', ' ', ' ', ' '};
         int len = strlen(status_str);
-        memcpy(buf + (3 - len), status_str, len);
-
-        write(STDOUT_FILENO, "\x1b[31m ", 6); // red error
-        write(STDOUT_FILENO, buf, 4);
+        memcpy(buf + (9 - len), status_str, len);
+        memcpy(BufTotal+index, buf, 10);
+        index += 10;
     } else {
-        write(STDOUT_FILENO, "   \x1b[33m➜ ", 12); // yellow arrow
+        char* arrow = "   \x1b[33m➜ ";
+        memcpy(BufTotal+index, arrow, 12);
+        index += 12;
     }
+    write(STDOUT_FILENO, BufTotal, index);
 
-
-    // buffered version
-    // make buffer, size n
-    // add green, size 5
-    // add dir, size ?
-    // add either orange arrow, size 12, or:
-    // red, size 6, and buf, size 4
-    // so either 5+?+{12 or 10}, 15+? or 17+?
 }

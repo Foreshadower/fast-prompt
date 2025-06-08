@@ -1,4 +1,4 @@
-In my shells I'm fond of running Fish in MSYS2/UCRT64, or a Linux VM (Ubuntu or Debian) and even the default prompt takes a noticeable delay to print.
+In my terminal emulators I'm fond of running Fish, in MSYS2/UCRT64 or a Linux VM (Ubuntu or Debian), and even just the default prompt takes a noticeable delay to print.
 
 I made my own prompt which guarantees you see the current working directory, the last error code, and for the same directory keeps a constant line width (so it's easy to go through many lines to find the status code, without it sticking out too sorely). However, when written in the Fish shell language, it's as slow if not slower than the default prompt, which is unbearable during frequent use.
 

@@ -3,10 +3,13 @@
 #include <string.h>
 #include <stdlib.h>
 
-const char* fast_basename() {
+const char* fast_basename(int* length) {
     char* path = getenv("PWD");
-    const char* start = path + strlen(path) - 1;
+    const char* end = path + strlen(path) - 1;
+    const char* start = end;
+    // const char* start = path + strlen(path) - 1;
     while (start > path && start[-1] != '/') --start;
+    *length = end - start;
     return start;
 }
 
@@ -18,10 +21,11 @@ int main(int argc, char** argv) { // TODO likely much better method
 
     memcpy(BufTotal, "\x1b[32m", 5);
 
-    const char* dir = fast_basename();
 
-    memcpy(BufTotal+5, dir, strlen(dir));
-    index += strlen(dir);
+	int len_dir;
+    const char* dir = fast_basename(&len_dir);
+    memcpy(BufTotal+5, dir, len_dir);
+    index += len_dir;
 
     const char* status_str = argv[1];
     if (status_str && status_str[0] != '0') {

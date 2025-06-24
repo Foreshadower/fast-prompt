@@ -8,19 +8,16 @@ const char* fast_basename(int* length) {
     const char* end = path + strlen(path) - 1;
     const char* start = end;
     // const char* start = path + strlen(path) - 1;
-    while (start > path && start[-1] != '/') --start;
-    *length = end - start;
+    while (start > path && start[-1] != '/') start--;
+    *length = (end - start) + 1;
     return start;
 }
 
 int main(int argc, char** argv) { // TODO likely much better method
     // SetConsoleOutputCP(CP_UTF8);
     // SetConsoleCP(CP_UTF8);
-    char BufTotal[30]; // TODO Boldly assumes basename is <18 chars
+    char BufTotal[30] = "\x1b[32m"; // TODO Boldly assumes basename is <18 chars
     int index = 5;
-
-    memcpy(BufTotal, "\x1b[32m", 5);
-
 
 	int len_dir;
     const char* dir = fast_basename(&len_dir);
@@ -35,9 +32,11 @@ int main(int argc, char** argv) { // TODO likely much better method
         memcpy(BufTotal+index, buf, 10);
         index += 10;
     } else {
-        char* arrow = "   \x1b[33m➜ ";
-        memcpy(BufTotal+index, arrow, 12);
-        index += 12;
+        // const char* arrow = "   \x1b[33m> ";
+        // memcpy(BufTotal+index, arrow, 11);
+        char* bufindex = BufTotal+index; // "   \x1b[33m> " copy below;
+		bufindex[0] = ' '; bufindex[1] = ' '; bufindex[2] = ' '; bufindex[3] = '\x1b'; bufindex[4] = '['; bufindex[5] = '3'; bufindex[6] = '3'; bufindex[7] = 'm'; bufindex[8] = '>'; bufindex[9] = ' '; bufindex[10] = '\0';
+        index += 11;
     }
     write(STDOUT_FILENO, BufTotal, index);
 

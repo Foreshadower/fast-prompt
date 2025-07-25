@@ -14,7 +14,7 @@ const char* fast_basename(int* length) {
 }
 
 int main(int argc, char** argv) {
-    char BufTotal[70] = "\x1b[90m"; // TODO max basename check
+    char BufTotal[70] = "\x1b[32m"; // TODO max basename check
     int len_dir;
     const char* dir = fast_basename(&len_dir);
     memcpy(BufTotal+5, dir, len_dir);

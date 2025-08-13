@@ -19,12 +19,12 @@ const char* basename() {
 
 int main(int argc, char** argv) {
 
-    dir = fast_basename();
+    dir = basename();
     memcpy(BufTotal+5, dir, len_dir);
 
-    char* escapetemp = BufTotal+5+len_dir;
-    escapetemp[0] = '\x1b'; escapetemp[1] = '['; escapetemp[2] = '0';
-    escapetemp[3] = 'm'; escapetemp[4] = ' ';
+    char* colour_reset = BufTotal+5+len_dir;
+    colour_reset[0] = '\x1b'; colour_reset[1] = '['; colour_reset[2] = '0';
+    colour_reset[3] = 'm'; colour_reset[4] = ' ';
 
     int index = 10 + len_dir;
 

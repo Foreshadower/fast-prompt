@@ -2,57 +2,93 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* note: the unrolled char assignment annoys me too. */
+// TODO max basename check
 
-int len_dir;
-const char* dir;
-char BufTotal[70] = "\x1b[32m"; // TODO max basename check
+           /* my ( https://github.com/foreshadower ) shell prompt */
+              /* takes either no args, or 1 for last exit code */
 
-const char* basename() {
-    char* path = getenv("PWD");
-    const char* end = path + strlen(path) - 1;
+            /* note: the unrolled char assignment annoys me too. */
+
+#define DIRCOLOR "\x1b[32m"
+#define DIRCOLORLEN 5
+#define BUFMAX 44
+#define RESETLEN 4
+#define STATUSLEN 15
+
+#define NONDIRLEN (DIRCOLORLEN + RESETLEN + STATUSLEN)
+#define DIRLENMAX BUFMAX - NONDIRLEN
+
+inline static const char*
+basename(int* len)
+{
+    const char* path  = getenv("PWD");
+    const char* end   = path + strlen(path) - 1;
     const char* start = end;
+    
     while (start > path && start[-1] != '/') start--;
-    len_dir = (end - start) + 1;
+
+    *len = (int)(end - start) + 1;
+    if ((int)(end - start) > DIRLENMAX) *len = DIRLENMAX;
     return start;
 }
 
-int main(int argc, char** argv) {
+int
+main(int argc, char** argv)
+{
+    int         dir_len;
+    const char* dir_name              = basename(&dir_len);
+    char        buffer_prompt[BUFMAX] = DIRCOLOR;
+    char*       buffer_reset          = buffer_prompt + DIRCOLORLEN + dir_len;
+    char*       buffer_status         = buffer_reset + RESETLEN;
 
-    dir = basename();
-    memcpy(BufTotal+5, dir, len_dir);
+    memcpy(buffer_prompt + DIRCOLORLEN, dir_name, dir_len);
 
-    char* colour_reset = BufTotal+5+len_dir;
-    colour_reset[0] = '\x1b'; colour_reset[1] = '['; colour_reset[2] = '0';
-    colour_reset[3] = 'm'; colour_reset[4] = ' ';
+    buffer_reset[0] = '\x1b';
+    buffer_reset[1] = '[';
+    buffer_reset[2] = '0';
+    buffer_reset[3] = 'm';
 
-    int index = 10 + len_dir;
 
-    char* bufindex = BufTotal+index;
+    if (argc > 1 && argv[1][0] != '0') {        /* !0, so "\x1b[31m" for red */
 
-    if (argv[1] && argv[1][0] != '0') {
+        char status_arr[15] = {'\x1b', '[', '3', '1', 'm',
+                               ' ', ' ', ' ', argv[1][0],  /* 1 digit status */
+                               ' ', '\x1b', '[', '0', 'm',
+                               '\0'};
 
-        char buf[15] = {'\x1b', '[', '3', '1', 'm', ' ', ' ', ' ', argv[1][0],
-                        ' ', '\x1b', '[', '0', 'm', '\0'};
-
-        if (argv[1][2] == '\0') { /* two digit status into buf */
-            buf[7] = argv[1][0]; buf[8] = argv[1][1];
+        if (argv[1][2] == '\0') {                          /* 2 digit status */
+            status_arr[7] = argv[1][0];
+            status_arr[8] = argv[1][1];
         }
-        else if (argv[1][3] == '\0') { /* three digit status into buf */
-            buf[6] = argv[1][0]; buf[7] = argv[1][1]; buf[8] = argv[1][2];
+        else if (argv[1][3] == '\0') {                     /* 3 digit status */
+            status_arr[6] = argv[1][0];
+            status_arr[7] = argv[1][1];
+            status_arr[8] = argv[1][2];
         }
 
-        memcpy(bufindex, buf, 15);
+        memcpy(buffer_status, status_arr, STATUSLEN);
+
+    } else {      /* add arrow " \x1b[33m>" then reset escape code "\x1b[0m" */
+
+        buffer_status[0] = ' ';
+        buffer_status[1] = ' ';
+        buffer_status[2] = ' ';
+        buffer_status[3] = '\x1b';
+        buffer_status[4] = '[';
+        buffer_status[5] = '3';
+        buffer_status[6] = '3';
+        buffer_status[7] = 'm';
+        buffer_status[8] = '>'; 
+
+        buffer_status[9] =  ' ';
+        buffer_status[10] = '\x1b';
+        buffer_status[11] = '[';
+        buffer_status[12] = '0';
+        buffer_status[13] = 'm';
+        buffer_status[14] = '\0';
 
     }
-    else { // const char* arrow = " \x1b[33m> ";
-        bufindex[0] = ' '; bufindex[1] = ' '; bufindex[2] = ' ';
-        bufindex[3] = '\x1b'; bufindex[4] = '['; bufindex[5] = '3';
-        bufindex[6] = '3'; bufindex[7] = 'm'; bufindex[8] = '>';
 
-        bufindex[9] = ' '; bufindex[10] = '\x1b'; bufindex[11] = '[';
-        bufindex[12] = '0'; bufindex[13] = 'm'; bufindex[14] = '\0';
-    }
+    write(STDOUT_FILENO, buffer_prompt, dir_len + NONDIRLEN);
 
-    write(STDOUT_FILENO, BufTotal, index+20);
 }
